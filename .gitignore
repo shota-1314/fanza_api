@@ -1,0 +1,12 @@
+/.env
+/.vscode
+/.cookies.json
+debug_data/
+venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+logs/
+*.log
