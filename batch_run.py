@@ -35,6 +35,8 @@ def main():
     # 2. アンテナサイトRSS取得
     run_script("fetch_antenna_rss.py")
     
+    run_script("fetch_fc2_videos.py")
+    
     print(f"\n{'='*20}")
     print("全てのバッチ処理が完了しました")
     print(f"{'='*20}")
