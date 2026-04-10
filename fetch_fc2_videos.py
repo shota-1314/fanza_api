@@ -143,10 +143,13 @@ def main():
                 tags = []
                 tag_elems = detail_soup.select('.items_article_TagArea a')
                 for tag_elem in tag_elems:
-                  # タグのマスター登録（DB保存の前に行う）
-                    if tags:
-                        ensure_tags_exist(db, tags)
-                    tags.append(tag_elem.text.strip())
+                    tag_text = tag_elem.text.strip()
+                    if tag_text:  # 空文字でない場合のみ追加
+                        tags.append(tag_text)
+                
+                # タグのマスター登録（DB保存の前に行う）
+                if tags:
+                    ensure_tags_exist(db, tags)
 
                 # === 3. 動画URL取得 (メタタグ または 正規表現) ===
                 video_url = ""
