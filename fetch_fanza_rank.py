@@ -9,6 +9,10 @@ import requests
 from datetime import datetime, timedelta
 from urllib.parse import quote
 from dotenv import load_dotenv
+from common.logging_config import setup_logging
+
+logger = setup_logging("fetch_fanza_rank")
+
 from common.db import Database
 from utils.gemini_client import GeminiClient
 from queries.fanza_queries import (

@@ -1,0 +1,15 @@
+[Unit]
+Description=FANZA API batch job
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=fanzaapi
+Group=fanzaapi
+WorkingDirectory=/opt/fanza_api
+EnvironmentFile=/opt/fanza_api/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/fanza_api/venv/bin/python /opt/fanza_api/batch_run.py
+NoNewPrivileges=true
+PrivateTmp=true

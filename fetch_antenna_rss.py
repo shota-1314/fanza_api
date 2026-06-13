@@ -11,6 +11,10 @@ from email.utils import parsedate_to_datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
+from common.logging_config import setup_logging
+
+logger = setup_logging("fetch_antenna_rss")
+
 from common.db import Database
 from queries.antenna_queries import (
     get_active_antenna_sites_query,
@@ -31,7 +35,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 from email.utils import parsedate_to_datetime
 
-def parse_rss(xml_content: str, site_name: str, antenna_id: str) -> list:
+def parse_rss(xml_content: str, site_name: str, antenna_id: str, rss_url: str = "") -> list:
     """
     RSSコンテンツをパースして記事リストを返す
     """
@@ -92,20 +96,33 @@ def parse_rss(xml_content: str, site_name: str, antenna_id: str) -> list:
                 
                 # 3. content:encoded / description 内の img
                 if not image_url:
-                    content_encoded = item.find('content:encoded')
-                    description = item.find('description')
+                    # 特別処理: japan-hentai.com の場合は content:encoded を優先してチェック
+                    if 'japan-hentai.com' in rss_url:
+                        content_encoded = item.find('content:encoded')
+                        if content_encoded:
+                            target_content = content_encoded.get_text()
+                            if target_content:
+                                content_soup = BeautifulSoup(target_content, 'html.parser')
+                                img_tag = content_soup.find('img')
+                                if img_tag and img_tag.get('src'):
+                                    image_url = img_tag.get('src')
                     
-                    target_content = ''
-                    if description:
-                        target_content = description.get_text()
-                    elif content_encoded:
-                        target_content = content_encoded.get_text()
-                    
-                    if target_content:
-                        content_soup = BeautifulSoup(target_content, 'html.parser')
-                        img_tag = content_soup.find('img')
-                        if img_tag:
-                            image_url = img_tag.get('src', '')
+                    # 通常処理
+                    if not image_url:
+                        content_encoded = item.find('content:encoded')
+                        description = item.find('description')
+                        
+                        target_content = ''
+                        if description:
+                            target_content = description.get_text()
+                        elif content_encoded:
+                            target_content = content_encoded.get_text()
+                        
+                        if target_content:
+                            content_soup = BeautifulSoup(target_content, 'html.parser')
+                            img_tag = content_soup.find('img')
+                            if img_tag and img_tag.get('src'):
+                                image_url = img_tag.get('src')
 
                 # PR記事などの除外
                 if 'PR' in title or '広告' in title:
@@ -148,7 +165,7 @@ def fetch_site_rss(site: dict) -> list:
         response = requests.get(rss_url, headers=headers, timeout=TIMEOUT)
         response.raise_for_status()
         
-        return parse_rss(response.content, site_name, antenna_id)
+        return parse_rss(response.content, site_name, antenna_id, rss_url)
         
     except requests.exceptions.RequestException as e:
         print(f"  RSS取得失敗 ({site_name}): {e}")

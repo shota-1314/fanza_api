@@ -2,6 +2,10 @@ import time
 import re
 import requests
 from bs4 import BeautifulSoup
+from common.logging_config import setup_logging
+
+logger = setup_logging("fetch_fc2_videos")
+
 from common.db import Database
 from queries.fc2_queries import insert_tag_master_query
 from queries.fanza_queries import check_tag_exists_query

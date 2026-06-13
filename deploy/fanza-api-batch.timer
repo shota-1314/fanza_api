@@ -1,0 +1,10 @@
+[Unit]
+Description=Run FANZA API batch job daily
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+Unit=fanza-api-batch.service
+
+[Install]
+WantedBy=timers.target
